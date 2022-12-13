@@ -1,0 +1,28 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+<h1 align="center"> {{ item }} </h1>
+<p align="center"> <img src={{item.Img_url}} alt={{item}} width="200" height="300"></p>
+
+<p>{{ item.description }}</p>
+<h2>Price: €{{ item.price }}</h2>
+<h2>Owner: {{ item.owner }} </h2>
+
+<div>
+    {% if user.is_authenticated %}
+    <form action="{% url 'listing' item.id %}" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ bid_form }}
+      <input type="submit" name="Submit" value="Submit">
+      </form>
+      <li class="nav-item">
+          <a class="nav-link" href="{% url 'watchlist' item.id %}">Add to watchlist</a>
+      </li>
+    {% else %}
+        Sign in to place bid.
+    {% endif %}
+</div>
+
+
+{% endblock %}

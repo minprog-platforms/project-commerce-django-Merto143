@@ -22,6 +22,11 @@ class Auction_item(models.Model):
 
 
 class Bid(models.Model):
-    bidder = models.ManyToManyField(User, related_name="Bid")
-    item = models.ManyToManyField(Auction_item, related_name="Bid")
+    bidder = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name="Bidder")
+    item = models.ManyToManyField(Auction_item, related_name="Bid_item")
     bid_price = models.DecimalField(max_digits=12, decimal_places=2)
+
+class Comment(models.Model):
+    comment_input = models.TextField(max_length=250)
+    commenter = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name="Commenter")
+    item = models.ManyToManyField(Auction_item, related_name="Comment")

@@ -1,12 +1,13 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django import forms
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
-from .models import User, Auction_item, Bid
+from .models import User, Auction_item, Bid, Comment
 
 
 class ListingForm(forms.ModelForm):
@@ -18,7 +19,13 @@ class ListingForm(forms.ModelForm):
 class BidForm(forms.ModelForm):
     class Meta:
         model = Bid
+        labels = {"bid_price": "Place Bid: €"}
         fields = ['bid_price']
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ["comment_input"]
 
 def index(request):
     return render(request, "auctions/index.html", {
@@ -27,21 +34,57 @@ def index(request):
 def listing(request, item_id):
     item = Auction_item.objects.get(pk = item_id)
     bid_form = ""
+    comment_form = ""
+    watchlist = ""
+
     if request.user.is_authenticated:
         bid_form = BidForm()
+        comment_form = CommentForm()
+        watchlist = request.user.Watch_item.all()
 
         if request.method == "POST":
             bid_form = BidForm(request.POST)
+            comment_form = CommentForm(request.POST)
 
             if bid_form.is_valid():
-                new_bid = bid_form.save()
-                new_bid.bidder.add(request.user.id)
+                bid_price = request.POST["bid_price"]
+
+                check = check_bid(item, bid_price)
+
+                if check == 1:
+                    messages.error(request, "Bid must be higher than item price")
+                    return HttpResponseRedirect(reverse("listing", kwargs={'item_id': item.id}))
+                elif check == 2:
+                    messages.error(request, "Bid must be higher than other bids")
+                    return HttpResponseRedirect(reverse("listing", kwargs={'item_id': item.id}))
+
+
+                new_bid = Bid(
+                    bid_price = bid_price,
+                    bidder = request.user
+                )
+
+                new_bid.save()
                 new_bid.item.add(item)
+
+            if comment_form.is_valid():
+                comment_input = request.POST["comment_input"]
+
+                new_comment = Comment(
+                    comment_input = comment_input,
+                    commenter = request.user,
+                )
+                new_comment.save()
+                new_comment.item.add(item)
 
     return  render(request, "auctions/listing.html", {
         "item": item,
         "owner": item.owner,
-        "bid_form":bid_form
+        "bid_form":bid_form,
+        "watchlist": watchlist,
+        "bids": item.Bid_item.all(),
+        "comment_form": comment_form,
+        "comments": item.Comment.all()
         })
 
 def create_listing(request):
@@ -82,8 +125,20 @@ def add_to_watchlist(request, item_id):
     user = request.user
     item = Auction_item.objects.get(pk = item_id)
     item.watchlist.add(user)
-    return HttpResponse("Successful")
+    return HttpResponseRedirect(reverse("listing", kwargs={'item_id': item.id}))
 
+@login_required
+def remove_from_watchlist(request, item_id):
+    user = request.user
+    item = Auction_item.objects.get(pk = item_id)
+    item.watchlist.remove(user)
+    return HttpResponseRedirect(reverse("listing", kwargs={'item_id': item.id}))
+
+@login_required
+def my_listings(request):
+    user = request.user
+    userlistings = Auction_item.objects.filter(owner=user)
+    return render(request, "auctions/my_listings.html", {"listings": userlistings})
 
 def login_view(request):
     if request.method == "POST":
@@ -139,3 +194,16 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
+
+def check_bid(item, bid_price):
+    prices = []
+    if float(bid_price) < item.price:
+        return 1
+    for bid in item.Bid_item.all():
+        prices.append(bid.bid_price)
+    if prices != []:
+        max_bid = max(prices)
+        if float(bid_price) <= max_bid:
+            return 2
+    else:
+        return 0

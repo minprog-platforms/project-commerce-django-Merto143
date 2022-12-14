@@ -2,26 +2,76 @@
 
 {% block body %}
 
-<h1 align="center"> {{ item }} </h1>
-<p align="center"> <img src={{item.Img_url}} alt={{item}} width="200" height="300"></p>
+<h1 class="Alcen"> {{ item }} </h1>
+
+<p class="Alcen"> <img src={{item.Img_url}} alt={{item}} width="200" height="300"></p>
+
+<div class="Info">
 
 <p>{{ item.description }}</p>
-<h2>Price: €{{ item.price }}</h2>
-<h2>Owner: {{ item.owner }} </h2>
+<h3>Price: €{{ item.price }}</h3>
+<h3 class="Bids" >Owner: {{ item.owner }} </h3>
 
 <div>
+    {% if user != item.owner %}
     {% if user.is_authenticated %}
+    {% if item in watchlist %}
+    <ul>
+        <a class="nav-link" href="{% url 'remove_watchlist' item.id %}">Remove from watchlist</a>
+    </ul>
+    {% else %}
+    <ul>
+        <a class="nav-link" href="{% url 'add_watchlist' item.id %}">Add to watchlist</a>
+    </ul>
+    {% endif %}
+
+
+
+</div>
+
+</div>
+
+<div class="Bids">
     <form action="{% url 'listing' item.id %}" method="post" enctype="multipart/form-data">
       {% csrf_token %}
       {{ bid_form }}
       <input type="submit" name="Submit" value="Submit">
       </form>
-      <li class="nav-item">
-          <a class="nav-link" href="{% url 'watchlist' item.id %}">Add to watchlist</a>
-      </li>
+      {% if messages %}
+      {% for message in messages %}
+      <div class="Mydiv">
+        {{ message }}
+      </div>
+      {% endfor %}
+      {% endif %}
+
     {% else %}
         Sign in to place bid.
     {% endif %}
+    {% endif %}
+<br>
+<h3>Current Bids:</h3>
+{% for bid in bids %}
+<ul>
+  {{bid.bidder}}: {{bid.bid_price}}
+</ul>
+{% endfor %}
+
+</div>
+
+<br><br>
+<div>
+  <h1> Comments:</h1>
+  {% for comment in comments%}
+  <ul>
+    {{comment.commenter}}: {{comment.comment_input}}
+  </ul>
+  {% endfor%}
+  <form action="{% url 'listing' item.id %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ comment_form }}
+    <input type="submit" name="Submit" value="Submit">
+    </form>
 </div>
 
 

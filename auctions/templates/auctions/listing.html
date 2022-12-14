@@ -1,8 +1,10 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-<div class="Alcen">
 
+
+
+<div class="Alcen">
 
 <h1> {{ item }} </h1>
 {% if not item.is_active %}
@@ -13,7 +15,15 @@
 
 <p>{{ item.description }}</p>
 <h3>Price: €{{ item.price }}</h3>
-<h3 class="Bids" >Owner: {{ item.owner }} </h3>
+<h3> Owner: {{ item.owner }} </h3>
+<br>
+{% if not item.is_active %}
+{% if winner == "" %}
+<h3>Auction winner: No winner </h3>
+{% else %}
+<h3>Auction winner: {{ winner }} </h3>
+{% endif %}
+{% endif%}
 
 <div>
     {% if item.is_active %}
@@ -31,64 +41,72 @@
     </ul>
     {% endif %}
     {% endif %}
-
-</div>
-
-
-
-<div class="Bids">
-    <form action="{% url 'listing' item.id %}" method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-      {{ bid_form }}
-      <input type="submit" name="Submit" value="Submit">
-      </form>
-      {% if messages %}
-      {% for message in messages %}
-      <div class="Mydiv">
-        {{ message }}
-      </div>
-      {% endfor %}
-      {% endif %}
-
-    {% else %}
-        Sign in to place bid.
+    {% endif %}
     {% endif %}
 
-
+</div>
 <br>
-<h3>Current Bids:</h3>
-{% if not bids  %}
-<p>No bids yet, be the first one to place an offer!</p>
-{% else %}
-{% for bid in bids %}
-<ul>
-  {{bid.bidder}}: €{{bid.bid_price}}
-</ul>
-{% endfor %}
-{% endif %}
-</div>
 
-<br><br>
-<div>
-  <h1> Comments:</h1>
-  {% for comment in comments%}
-  <ul>
-    {{comment.commenter}}: {{comment.comment_input}}
-  </ul>
-  {% endfor%}
-  <form action="{% url 'listing' item.id %}" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ comment_form }}
-    <input type="submit" name="Submit" value="Submit">
-    </form>
-</div>
+<div class="containter">
+  <div class="row justify-content-center">
+    <div class="col">
+      <form action="{% url 'listing' item.id %}" method="post" enctype="multipart/form-data">
+        <div class="border">
+          {% if item.is_active %}
+          {% if user.is_authenticated %}
+        <h3>Current Bids:</h3>
+        {% if not bids  %}
+        <p>No bids yet, be the first one to place an offer!</p>
+        {% else %}
+        {% for bid in bids %}
+        <ul>
+          {{bid.bidder}}: €{{bid.bid_price}}
+        </ul>
+        {% endfor %}
+        {% endif %}
+        <br>
 
-{% else %}
-{% if winner == "" %}
-<h3>Auction winner: No winner </h3>
-{% else %}
-<h3>Auction winner: {{ winner }} </h3>
-{% endif %}
-</div>
+        {% csrf_token %}
+        {{ bid_form }}
+        <input type="submit" name="Submit" value="Submit">
+        </form>
+        {% if messages %}
+        {% for message in messages %}
+        <div class="Mydiv">
+          {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+      {% else %}
+          Sign in to place bid.
+      {% endif %}
+      </div>
+
+      </div>
+      <div class="col">
+        <div class="border">
+
+
+        <h1> Comments:</h1>
+        {% for comment in comments%}
+        <ul class="left">
+          {{comment.commenter}}: <br>
+          "{{comment.comment_input}}"
+        </ul>
+        {% endfor%}
+        <form action="{% url 'listing' item.id %}" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <label class="form-label"> Place your comment: </label>
+          <br>
+          {{ comment_form.comment_input }}
+          <br>
+          <input type="submit" name="Submit" value="Submit">
+          </form>
+          </div>
+      </div>
+    </div>
+  </div>
+
 {% endif %}
 {% endblock %}

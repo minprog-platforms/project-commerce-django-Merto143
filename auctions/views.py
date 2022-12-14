@@ -16,7 +16,6 @@ class ListingForm(forms.ModelForm):
         labels = {"item": "Name"}
         fields = ['item', 'price', 'Img_url', 'description']
 
-
 class BidForm(forms.ModelForm):
     class Meta:
         model = Bid
@@ -40,6 +39,7 @@ def listing(request, item_id):
     comment_form = ""
     watchlist = ""
     winner = ""
+    highest_bid = ""
 
     if request.user.is_authenticated:
         bid_form = BidForm()

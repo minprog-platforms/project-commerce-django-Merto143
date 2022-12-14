@@ -9,7 +9,12 @@
         <meta charset="UTF-8">
     </head>
     <body>
+      <div class="top_field">
+
+
+      <div class="Alcen">
         <h1>Auctions</h1>
+      </div>
         <div class="right">
             {% if user.is_authenticated %}
                 Signed in as <strong>{{ user.username }}</strong>.
@@ -44,6 +49,7 @@
             {% endif %}
         </ul>
         <hr>
+        </div>
         {% block body %}
         {% endblock %}
     </body>

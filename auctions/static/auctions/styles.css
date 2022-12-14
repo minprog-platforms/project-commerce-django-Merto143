@@ -2,19 +2,21 @@ body {
     padding: 10px;
 }
 
-.Bids {
-  text-align: center;
-}
-
-.Info{
-
-  text-align: center;
-}
-
-.Mydiv {
-  color: red;
-}
-
 .Alcen {
   text-align: center;
+}
+
+.Listing_item {
+  text-align: center;
+  display: inline-block;
+  padding: 10px;
+  border-style: solid;
+  border-width: 2px;
+}
+
+
+.Form_field {
+  text-align: center;
+  display: inline-block;
+  padding: 10px;
 }

@@ -2,12 +2,18 @@
 
 {% block body %}
 
+<div class="Alcen">
 
 <h1>My Watchlist</h1>
 
 {% for item in watchlist %}
-<ul>
-  <a href="{% url 'listing' item.id%}"> {{ item }} </a>
-</ul>
+  <div class="Listing_item">
+
+
+  <a href="{% url 'listing' item.id%}"> {{ item }}
+    <p class="Alcen"> <img src={{item.Img_url}} alt={{item}} width="200" height="300"></p>
+  </a>
+  </div>
 {% endfor %}
+</div>
 {% endblock %}

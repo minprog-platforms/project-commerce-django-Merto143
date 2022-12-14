@@ -16,16 +16,19 @@ class ListingForm(forms.ModelForm):
         labels = {"item": "Name"}
         fields = ['item', 'price', 'Img_url', 'description']
 
+
 class BidForm(forms.ModelForm):
     class Meta:
         model = Bid
         labels = {"bid_price": "Place Bid: €"}
         fields = ['bid_price']
 
+
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
         fields = ["comment_input"]
+
 
 def index(request):
     return render(request, "auctions/index.html", {
@@ -36,6 +39,7 @@ def listing(request, item_id):
     bid_form = ""
     comment_form = ""
     watchlist = ""
+    winner = ""
 
     if request.user.is_authenticated:
         bid_form = BidForm()
@@ -58,14 +62,20 @@ def listing(request, item_id):
                     messages.error(request, "Bid must be higher than other bids")
                     return HttpResponseRedirect(reverse("listing", kwargs={'item_id': item.id}))
 
-
                 new_bid = Bid(
                     bid_price = bid_price,
                     bidder = request.user
                 )
 
+                if new_bid.bidder == item.owner:
+                    messages.error(request, "You can't place any bids on your own item")
+                    return HttpResponseRedirect(reverse("listing", kwargs={'item_id': item.id}))
+
+
                 new_bid.save()
                 new_bid.item.add(item)
+
+                item.watchlist.add(request.user)
 
             if comment_form.is_valid():
                 comment_input = request.POST["comment_input"]
@@ -77,6 +87,10 @@ def listing(request, item_id):
                 new_comment.save()
                 new_comment.item.add(item)
 
+        if not item.is_active:
+            winner = get_winner(item)
+
+
     return  render(request, "auctions/listing.html", {
         "item": item,
         "owner": item.owner,
@@ -84,7 +98,8 @@ def listing(request, item_id):
         "watchlist": watchlist,
         "bids": item.Bid_item.all(),
         "comment_form": comment_form,
-        "comments": item.Comment.all()
+        "comments": item.Comment.all(),
+        "winner": winner
         })
 
 def create_listing(request):
@@ -139,6 +154,15 @@ def my_listings(request):
     user = request.user
     userlistings = Auction_item.objects.filter(owner=user)
     return render(request, "auctions/my_listings.html", {"listings": userlistings})
+
+@login_required
+def close_auction(request, item_id):
+    item = Auction_item.objects.get(pk = item_id)
+    item.is_active = False
+    item.save()
+
+    return HttpResponseRedirect(reverse("listing", kwargs={'item_id': item.id}))
+
 
 def login_view(request):
     if request.method == "POST":
@@ -195,15 +219,30 @@ def register(request):
     else:
         return render(request, "auctions/register.html")
 
+
 def check_bid(item, bid_price):
+    """ Returns 0 if the bid placed is valid"""
     prices = []
+    # check if bid is higher than starting price
     if float(bid_price) < item.price:
         return 1
+
     for bid in item.Bid_item.all():
         prices.append(bid.bid_price)
+
     if prices != []:
         max_bid = max(prices)
+
+        # check if bid is higher than previous bids
         if float(bid_price) <= max_bid:
             return 2
     else:
         return 0
+
+def get_winner(item):
+
+    if item.Bid_item.first() != None:
+        winner = item.Bid_item.last().bidder.username
+    else:
+        winner = ""
+    return winner

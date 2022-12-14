@@ -1,17 +1,41 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-<div class="middle">
+<div class="Alcen">
   <h1 >Create Listing</h1>
-</div>
+
 
 <form action="{% url 'create' %}" method="post" enctype="multipart/form-data">
   {% csrf_token %}
-  {{ form.as_p }}
+
+  <div class="Form_field">
+  <label> {{form.item.label_tag }} </label>
+  <br>
+  {{ form.item }}
+
+  </div>
+  <div class="Form_field">
+  <label> {{form.price.label_tag }} </label>
+  <br>
+  {{ form.price }}
+
+  </div>
+  <div class="Form_field">
+  <label> {{form.Img_url.label_tag }} </label>
+  <br>
+  {{ form.Img_url }}
+  </div>
+  <br><br>
+
+  <label> {{form.description.label_tag }} </label>
+  <br>
+  {{ form.description }}
+  <br><br>
+
   <div>
       <input type="submit" name="submit" value="Submit">
   </div>
-
-
 </form>
+</div>
+
 {% endblock%}

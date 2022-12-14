@@ -1,20 +1,26 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+<div class="Alcen">
 
-<h1 class="Alcen"> {{ item }} </h1>
 
-<p class="Alcen"> <img src={{item.Img_url}} alt={{item}} width="200" height="300"></p>
+<h1> {{ item }} </h1>
+{% if not item.is_active %}
+<h3> (Auction closed) </h3>
+{% endif %}
 
-<div class="Info">
+<p> <img src={{item.Img_url}} alt={{item}} width="200" height="300"></p>
 
 <p>{{ item.description }}</p>
 <h3>Price: €{{ item.price }}</h3>
 <h3 class="Bids" >Owner: {{ item.owner }} </h3>
 
 <div>
-    {% if user != item.owner %}
+    {% if item.is_active %}
     {% if user.is_authenticated %}
+    {% if user == item.owner %}
+    <a href="{% url 'close_auction' item.id %}"> Close auction </a>
+    {% else %}
     {% if item in watchlist %}
     <ul>
         <a class="nav-link" href="{% url 'remove_watchlist' item.id %}">Remove from watchlist</a>
@@ -24,12 +30,11 @@
         <a class="nav-link" href="{% url 'add_watchlist' item.id %}">Add to watchlist</a>
     </ul>
     {% endif %}
-
-
-
-</div>
+    {% endif %}
 
 </div>
+
+
 
 <div class="Bids">
     <form action="{% url 'listing' item.id %}" method="post" enctype="multipart/form-data">
@@ -48,15 +53,19 @@
     {% else %}
         Sign in to place bid.
     {% endif %}
-    {% endif %}
+
+
 <br>
 <h3>Current Bids:</h3>
+{% if not bids  %}
+<p>No bids yet, be the first one to place an offer!</p>
+{% else %}
 {% for bid in bids %}
 <ul>
-  {{bid.bidder}}: {{bid.bid_price}}
+  {{bid.bidder}}: €{{bid.bid_price}}
 </ul>
 {% endfor %}
-
+{% endif %}
 </div>
 
 <br><br>
@@ -74,5 +83,12 @@
     </form>
 </div>
 
-
+{% else %}
+{% if winner == "" %}
+<h3>Auction winner: No winner </h3>
+{% else %}
+<h3>Auction winner: {{ winner }} </h3>
+{% endif %}
+</div>
+{% endif %}
 {% endblock %}

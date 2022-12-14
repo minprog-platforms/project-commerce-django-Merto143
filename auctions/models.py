@@ -16,6 +16,7 @@ class Auction_item(models.Model):
     Img_url = models.CharField(max_length=250)
     description = models.TextField()
     watchlist = models.ManyToManyField(User, blank=True, related_name="Watch_item")
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.item}"

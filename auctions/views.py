@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render, redirect
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from django.urls import reverse
 from django import forms
 from django.contrib.auth.decorators import login_required
@@ -15,6 +15,7 @@ class ListingForm(forms.ModelForm):
         model = Auction_item
         labels = {"item": "Name"}
         fields = ['item', 'price', 'Img_url', 'description']
+
 
 class BidForm(forms.ModelForm):
     class Meta:
@@ -30,79 +31,112 @@ class CommentForm(forms.ModelForm):
 
 
 def index(request):
+    """Laadt de home-pagina, hier worden alle actieve
+    listingen getoond. En kun je filteren op categorie."""
+
+    # zorg dat de current_price goed wordt weergeven.
     update_higest_bids()
+
     categories = Category.objects.all()
     list_items = Auction_item.objects.all()
 
+    # check of er een post binnenkomt
     if request.method == "POST":
+
+        # sla de categorie van de post op
         Cat = request.POST["Category"]
+
+        # check of er een categorie is opgegeven
         if Cat != "0":
-            list_items = Auction_item.objects.filter(Cat_item = Cat)
+            # update de list_items zodat alleen de item van met de opgegeven
+            # categorie erin zitten
+            list_items = Auction_item.objects.filter(Cat_item=Cat)
 
     return render(request, "auctions/index.html", {
         "items": list_items, "categories": categories})
 
+
 def listing(request, item_id):
-    item = Auction_item.objects.get(pk = item_id)
+    """Laadt de listing pagina van het aangeklikte item. Hier kun je
+    zien welke biedingen er zijn gedaan en ook comments plaatsen
+    """
+    item = Auction_item.objects.get(pk=item_id)
     bid_form = ""
     comment_form = ""
     watchlist = ""
     winner = ""
-    highest_bid = ""
 
     if request.user.is_authenticated:
+
+        # plaats form velden als de gebruiker ingelogd is
         bid_form = BidForm()
         comment_form = CommentForm()
         watchlist = request.user.Watch_item.all()
 
+        # check of de gebruiker een form invult
         if request.method == "POST":
             bid_form = BidForm(request.POST)
             comment_form = CommentForm(request.POST)
 
+            # check of de bidform is ingevuld
             if bid_form.is_valid():
                 bid_price = request.POST["bid_price"]
 
+                # check of de bieding hoog genoeg is
                 check = check_bid(item, bid_price)
 
+                # geef een error message als de biedin niet hoog genoeg is
                 if check == 1:
-                    messages.error(request, "Bid must be higher than item price")
-                    return HttpResponseRedirect(reverse("listing", kwargs={'item_id': item.id}))
+                    messages.error(request,
+                                   "Bid must be higher than item price")
+                    return HttpResponseRedirect(reverse("listing",
+                                                kwargs={'item_id': item.id}))
                 elif check == 2:
-                    messages.error(request, "Bid must be higher than other bids")
-                    return HttpResponseRedirect(reverse("listing", kwargs={'item_id': item.id}))
+                    messages.error(request,
+                                   "Bid must be higher than other bids")
+                    return HttpResponseRedirect(reverse("listing",
+                                                kwargs={'item_id': item.id}))
 
+                # maak een bieding
                 new_bid = Bid(
-                    bid_price = bid_price,
-                    bidder = request.user
+                    bid_price=bid_price,
+                    bidder=request.user
                 )
 
+                # check of de bieder niet ook de eigenaar van het item is
                 if new_bid.bidder == item.owner:
-                    messages.error(request, "You can't place any bids on your own item")
-                    return HttpResponseRedirect(reverse("listing", kwargs={'item_id': item.id}))
-
+                    messages.error(request,
+                                   "You can't place any bids on your own item")
+                    return HttpResponseRedirect(reverse("listing",
+                                                kwargs={'item_id': item.id}))
 
                 new_bid.save()
                 new_bid.item.add(item)
 
+                # het item wordt gelijk aan de wachtlist toevoegd als de
+                # gebruiker op het item heeft geboden
                 item.watchlist.add(request.user)
 
+            # check of er een comment wordt geplaatst
             if comment_form.is_valid():
                 comment_input = request.POST["comment_input"]
 
+                # maak een niewe comment aan
                 new_comment = Comment(
-                    comment_input = comment_input,
-                    commenter = request.user,
+                    comment_input=comment_input,
+                    commenter=request.user,
                 )
                 new_comment.save()
                 new_comment.item.add(item)
 
+        # krijg de winnaar van de veilig als het item niet meer actief is
         if not item.is_active:
             winner = get_winner(item)
 
-    return  render(request, "auctions/listing.html", {
+    return render(request, "auctions/listing.html", {
         "item": item,
         "owner": item.owner,
-        "bid_form":bid_form,
+        "bid_form": bid_form,
         "watchlist": watchlist,
         "bids": item.Bid_item.all(),
         "comment_form": comment_form,
@@ -110,10 +144,16 @@ def listing(request, item_id):
         "winner": winner,
         })
 
+
 def create_listing(request):
+    """Laadt de create listing pagina, waar de gebruiker een
+    nieuwe veiling kan starten"""
+
+    # plaats de form velden
     form = ListingForm()
     Categories = Category.objects.all()
 
+    # check of de gebruiker de form goed heeft ingevuld
     if request.method == "POST":
         form = ListingForm(request.POST)
 
@@ -124,6 +164,8 @@ def create_listing(request):
             description = request.POST["description"]
             owner = request.user
             category = request.POST["Category"]
+
+            # maak een new_listing item
             new_listing = Auction_item(
                 item=item_name,
                 price=price,
@@ -131,48 +173,81 @@ def create_listing(request):
                 description=description,
                 owner=owner
             )
+
             new_listing.save()
+
+            # als er een category opgegeven voegen we deze toe aan het item
             if category != "0":
                 new_listing.Cat_item.add(category)
-            return HttpResponseRedirect(reverse("listing", kwargs={'item_id': new_listing.id}))
 
-        else:
-            return HttpResponse("Niet gelukt")
+            # laadt de pagina voor het nieuwe item
+            return HttpResponseRedirect(reverse("listing",
+                                        kwargs={'item_id': new_listing.id}))
 
-    return render(request, "auctions/create_listing.html", {'form':form, 'categories': Categories})
+    return render(request, "auctions/create_listing.html",
+                  {'form': form, 'categories': Categories})
+
 
 @login_required
 def my_watchlist(request):
+    """Laadt my_watchlist pagina. Hier staan alle items die de
+    gebruiker aan zijn/haar watchlist heeft toegevoegd"""
+
     watchlist = request.user.Watch_item.all()
-    return render(request, "auctions/my_watchlist.html", {"watchlist": watchlist})
+
+    return render(request, "auctions/my_watchlist.html",
+                  {"watchlist": watchlist})
+
 
 @login_required
 def add_to_watchlist(request, item_id):
+    """Voegt een item toe aan de gebruikers watchlist en laadt
+    vervolgens dezelfde listing pagina"""
+
     user = request.user
-    item = Auction_item.objects.get(pk = item_id)
+    item = Auction_item.objects.get(pk=item_id)
+
+    # voeg het item toe aan de watchlist van de gebruiker
     item.watchlist.add(user)
-    return HttpResponseRedirect(reverse("listing", kwargs={'item_id': item.id}))
+
+    return HttpResponseRedirect(reverse("listing",
+                                kwargs={'item_id': item.id}))
+
 
 @login_required
 def remove_from_watchlist(request, item_id):
+    """Haalt een item van de gebruikers watchlist af en laadt
+    vervolgens dezelfde listing pagina"""
     user = request.user
-    item = Auction_item.objects.get(pk = item_id)
+    item = Auction_item.objects.get(pk=item_id)
+
+    # verwijder het item van de watchlist van de gebruiker
     item.watchlist.remove(user)
-    return HttpResponseRedirect(reverse("listing", kwargs={'item_id': item.id}))
+
+    return HttpResponseRedirect(reverse("listing",
+                                kwargs={'item_id': item.id}))
+
 
 @login_required
 def my_listings(request):
+    """Laadt de my_listings pagina. Deze pagina weergeeft alle listings van
+    die de gebruiker zelf heeft geplaatst"""
+
     user = request.user
     userlistings = Auction_item.objects.filter(owner=user)
-    return render(request, "auctions/my_listings.html", {"listings": userlistings})
+
+    return render(request, "auctions/my_listings.html",
+                  {"listings": userlistings})
+
 
 @login_required
 def close_auction(request, item_id):
-    item = Auction_item.objects.get(pk = item_id)
+    item = Auction_item.objects.get(pk=item_id)
     item.is_active = False
     item.save()
 
-    return HttpResponseRedirect(reverse("listing", kwargs={'item_id': item.id}))
+    return HttpResponseRedirect(reverse("listing",
+                                kwargs={'item_id': item.id}))
 
 
 def login_view(request):
@@ -196,11 +271,15 @@ def login_view(request):
 
 
 def logout_view(request):
+    """Log de gebruiker uit en laadt de index pagina"""
     logout(request)
     return HttpResponseRedirect(reverse("index"))
 
 
 def register(request):
+    """Laadt de register pagina waar de gebruiker een account kan aanmaken"""
+
+    # check of de form wordt gesubmit
     if request.method == "POST":
         username = request.POST["username"]
         first_name = request.POST["first_name"]
@@ -217,7 +296,11 @@ def register(request):
 
         # Attempt to create new user
         try:
-            user = User.objects.create_user(username = username, email = email, password = password, first_name = first_name, last_name = last_name)
+            user = User.objects.create_user(username=username,
+                                            email=email,
+                                            password=password,
+                                            first_name=first_name,
+                                            last_name=last_name)
             user.save()
             # user.first_name = first_name
             # user.last_name = last_name
@@ -250,24 +333,27 @@ def check_bid(item, bid_price):
     else:
         return 0
 
-def get_winner(item):
 
-    if item.Bid_item.first() != None:
+def get_winner(item):
+    """Returnt hoogste bieder als de veilig is afgelopen, return een lege
+    string als er niet op de veiling geboden is"""
+
+    # check of er geboden is op het item
+    if item.Bid_item.first() is not None:
+        # de hoogste bieder is automatisch de laatste bieder
         winner = item.Bid_item.last().bidder.username
     else:
         winner = ""
     return winner
-
-def get_highest_bid(item):
-    if item.Bid_item.last() == None:
-        return item.price
-    else:
-        return item.Bid_item.last().bid_price
+    
 
 def update_higest_bids():
-    for item in Auction_item.objects.all():
+    """Update voor elke listing de hoogste bieding. Als deze er niet is
+    de beginprijs."""
 
-        if item.Bid_item.first() == None:
+    for item in Auction_item.objects.all():
+        # check of er een bieding op op het item
+        if item.Bid_item.first() is None:
             item.highest_bid = item.price
         else:
             item.highest_bid = item.Bid_item.last().bid_price

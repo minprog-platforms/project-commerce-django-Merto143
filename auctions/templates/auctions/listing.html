@@ -53,10 +53,11 @@
       <form action="{% url 'listing' item.id %}" method="post" enctype="multipart/form-data">
         <div class="border">
           {% if item.is_active %}
-          {% if user.is_authenticated %}
-        <h3>Current Bids:</h3>
+          <h3>Current Bids:</h3>
+        {% if user.is_authenticated %}
         {% if not bids  %}
         <p>No bids yet, be the first one to place an offer!</p>
+
         {% else %}
         {% for bid in bids %}
         <ul>
@@ -81,6 +82,11 @@
         {% endif %}
 
       {% else %}
+      {% for bid in bids %}
+      <ul>
+        {{bid.bidder}}: €{{bid.bid_price}}
+      </ul>
+      {% endfor %}
           Sign in to place bid.
       {% endif %}
       </div>
@@ -91,6 +97,7 @@
 
 
         <h1> Comments:</h1>
+        {% if user.is_authenticated %}
         {% if not comments%}
         <p>No comments yet, be the first one to place a comment!</p>
         {% endif %}
@@ -109,6 +116,16 @@
           <input type="submit" name="Submit" value="Submit">
           </form>
           </div>
+          {% else %}
+          {% for comment in comments%}
+          <ul class="left">
+            {{comment.commenter}}: <br>
+            "{{comment.comment_input}}"
+          </ul>
+          {% endfor%}
+          <p>Sign in to place comment</p>
+          {% endif %}
+
       </div>
     </div>
   </div>

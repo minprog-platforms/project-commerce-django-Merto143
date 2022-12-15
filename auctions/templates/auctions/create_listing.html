@@ -34,6 +34,16 @@
         </div>
       </div>
 
+      <div class="col-2">
+        <label class="form-label"> Category </label>
+        <br>
+        <select class ="border" name="Category">
+          <option value="0" > Choose a category </option>
+          {% for category in categories %}
+          <option value="{{category.id}}">{{category}}</option>
+          {% endfor %}
+        </select>
+      </div>
     </div>
     <br>
     <div class="row justify-content-center">

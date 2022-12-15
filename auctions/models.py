@@ -2,6 +2,12 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
+CATEGORIES = [
+    ('Fashion', 'Fashion'),
+    ('Furniture', 'Furniture'),
+    ('Other', 'Other')
+]
+
 class User(AbstractUser):
 
     def __str__(self):
@@ -26,10 +32,17 @@ class Auction_item(models.Model):
 class Bid(models.Model):
     bidder = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name="Bidder")
     item = models.ManyToManyField(Auction_item, related_name="Bid_item")
-    bid_price = models.DecimalField(max_digits=12, decimal_places=2)
+    bid_price = models.DecimalField(max_digits=12, null=True, decimal_places=2)
 
 
 class Comment(models.Model):
     comment_input = models.TextField(max_length=250)
     commenter = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name="Commenter")
     item = models.ManyToManyField(Auction_item, related_name="Comment")
+
+class Category(models.Model):
+    category = models.CharField(max_length = 50, choices = CATEGORIES)
+    category_item = models.ManyToManyField(Auction_item, related_name="Cat_item")
+
+    def __str__(self):
+        return f"{self.category}"

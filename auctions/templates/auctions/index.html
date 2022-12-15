@@ -3,6 +3,18 @@
 {% block body %}
 <div class="Alcen">
   <h2>Active Listings</h2>
+  <form caction="{% url 'index' %}" method="post" enctype="multipart/form-data">
+
+    {% csrf_token %}
+
+  <select class ="border" name="Category">
+    <option value="0" > Choose a category </option>
+    {% for category in categories %}
+    <option value="{{category.id}}">{{category}}</option>
+    {% endfor %}
+  </select>
+  <input type="submit" name="submit" value="Submit">
+  </form>
 
   <div class="containter">
     <div class="row gx-0">
@@ -26,3 +38,25 @@
 </div>
 
 {% endblock %}
+
+div
+<div class="containter">
+  <div class="row gx-0">
+    {% for item in items %}
+    {% if item.is_active %}
+      <div class="col-sm-3 gy-4">
+        <div class="inputs">
+          <a href="{% url 'listing' item.id%}">
+            {{ item }}
+            <p class="Alcen"> <img src={{item.Img_url}} alt={{item}} width="200" height="300"></p>
+          </a>
+          <p>Current price: {{item.highest_bid}} <br>
+          By: {{item.owner}}</p>
+          <p> {{item.description}} </p>
+        </div>
+      </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+</div>
+</div>

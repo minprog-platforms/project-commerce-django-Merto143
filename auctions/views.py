@@ -7,7 +7,7 @@ from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
-from .models import User, Auction_item, Bid, Comment
+from .models import User, Auction_item, Bid, Comment, Category
 
 
 class ListingForm(forms.ModelForm):
@@ -31,9 +31,16 @@ class CommentForm(forms.ModelForm):
 
 def index(request):
     update_higest_bids()
+    categories = Category.objects.all()
+    list_items = Auction_item.objects.all()
+
+    if request.method == "POST":
+        Cat = request.POST["Category"]
+        if Cat != "0":
+            list_items = Auction_item.objects.filter(Cat_item = Cat)
 
     return render(request, "auctions/index.html", {
-        "items": Auction_item.objects.all()})
+        "items": list_items, "categories": categories})
 
 def listing(request, item_id):
     item = Auction_item.objects.get(pk = item_id)
@@ -105,6 +112,7 @@ def listing(request, item_id):
 
 def create_listing(request):
     form = ListingForm()
+    Categories = Category.objects.all()
 
     if request.method == "POST":
         form = ListingForm(request.POST)
@@ -115,6 +123,7 @@ def create_listing(request):
             Img_url = request.POST["Img_url"]
             description = request.POST["description"]
             owner = request.user
+            category = request.POST["Category"]
             new_listing = Auction_item(
                 item=item_name,
                 price=price,
@@ -123,13 +132,14 @@ def create_listing(request):
                 owner=owner
             )
             new_listing.save()
-
+            if category != "0":
+                new_listing.Cat_item.add(category)
             return HttpResponseRedirect(reverse("listing", kwargs={'item_id': new_listing.id}))
 
         else:
             return HttpResponse("Niet gelukt")
 
-    return render(request, "auctions/create_listing.html", {'form':form})
+    return render(request, "auctions/create_listing.html", {'form':form, 'categories': Categories})
 
 @login_required
 def my_watchlist(request):

@@ -67,7 +67,9 @@
         <br>
 
         {% csrf_token %}
-        {{ bid_form }}
+        <label class="form-label"> Place your comment: </label>
+        <br>
+        {{ bid_form.bid_price }}
         <input type="submit" name="Submit" value="Submit">
         </form>
         {% if messages %}

@@ -17,6 +17,7 @@ class Auction_item(models.Model):
     description = models.TextField()
     watchlist = models.ManyToManyField(User, blank=True, related_name="Watch_item")
     is_active = models.BooleanField(default=True)
+    highest_bid = models.DecimalField(max_digits=12, null=True, decimal_places=2)
 
     def __str__(self):
         return f"{self.item}"
@@ -26,6 +27,7 @@ class Bid(models.Model):
     bidder = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name="Bidder")
     item = models.ManyToManyField(Auction_item, related_name="Bid_item")
     bid_price = models.DecimalField(max_digits=12, decimal_places=2)
+
 
 class Comment(models.Model):
     comment_input = models.TextField(max_length=250)

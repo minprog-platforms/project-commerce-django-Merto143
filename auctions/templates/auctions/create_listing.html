@@ -8,23 +8,30 @@
   {% csrf_token %}
 
   <div class="containter">
-    <div class="row justify-content-center">        
+    <div class="row justify-content-center">
       <div class="col-2">
         <label class="form-label"> {{form.item.label_tag }} </label>
       <br>
-      {{ form.item }}
+      <div class="border">
+        {{ form.item }}
+      </div>
+
       </div>
 
       <div class="col-2">
         <label class= "form-label"> {{form.price.label_tag }} </label>
         <br>
-        {{ form.price }}
+        <div class="border">
+          {{ form.price }}
+        </div>
       </div>
 
       <div class="col-2">
         <label class="form-label"> {{form.Img_url.label_tag }} </label>
         <br>
-        {{ form.Img_url }}
+        <div class="border">
+          {{ form.Img_url }}
+        </div>
       </div>
 
     </div>
@@ -33,7 +40,7 @@
       <div class="col">
         <label class="form-label"> {{form.description.label_tag }} </label>
         <br>
-        {{ form.description }}
+            {{ form.description }}
       </div>
     </div>
 </div>

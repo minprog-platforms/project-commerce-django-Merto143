@@ -11,11 +11,21 @@ body {
 }
 
 .Listing_item {
-  text-align: center;
   display: inline-block;
   padding: 10px;
   border-style: solid;
   border-width: 2px;
+  height: 500px;
+}
+
+.inputs {
+  display: inline-block;
+  border-style: solid;
+  border-width: 2px;
+  height: 500px;
+  width: 250px;
+  text-align: center;
+  overflow: hidden;
 }
 
 
@@ -35,5 +45,12 @@ body {
 
 .border{
   border-style: solid;
-  border-width: 2px;
+  border-color: red;
+  border-width: 50px;
+}
+
+.item_p {
+  width: 200px;
+  font-size: 15px;
+  text-align: center;
 }

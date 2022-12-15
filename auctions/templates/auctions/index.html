@@ -1,23 +1,28 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-  <div class="Alcen">
-    <h2>Active Listings</h2>
+<div class="Alcen">
+  <h2>Active Listings</h2>
 
-
-    {% for item in items %}
-    {% if item.is_active %}
-
-    <div class="Listing_item">
-    <a href="{% url 'listing' item.id%}">
-      {{ item }}
-
-    <p class="Alcen"> <img src={{item.Img_url}} alt={{item}} width="200" height="300"></p>
-    </a>
+  <div class="containter">
+    <div class="row gx-0">
+      {% for item in items %}
+      {% if item.is_active %}
+        <div class="col-sm-3 gy-4">
+          <div class="inputs">
+            <a href="{% url 'listing' item.id%}">
+              {{ item }}
+              <p class="Alcen"> <img src={{item.Img_url}} alt={{item}} width="200" height="300"></p>
+            </a>
+            <p>Current price: {{item.highest_bid}} <br>
+            By: {{item.owner}}</p>
+            <p> {{item.description}} </p>
+          </div>
+        </div>
+      {% endif %}
+      {% endfor %}
     </div>
-
-    {% endif %}
-    {% endfor %}
+  </div>
 </div>
 
 {% endblock %}

@@ -89,6 +89,9 @@
 
 
         <h1> Comments:</h1>
+        {% if not comments%}
+        <p>No comments yet, be the first one to place a comment!</p>
+        {% endif %}
         {% for comment in comments%}
         <ul class="left">
           {{comment.commenter}}: <br>

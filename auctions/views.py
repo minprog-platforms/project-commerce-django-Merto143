@@ -30,6 +30,8 @@ class CommentForm(forms.ModelForm):
 
 
 def index(request):
+    update_higest_bids()
+
     return render(request, "auctions/index.html", {
         "items": Auction_item.objects.all()})
 
@@ -90,7 +92,6 @@ def listing(request, item_id):
         if not item.is_active:
             winner = get_winner(item)
 
-
     return  render(request, "auctions/listing.html", {
         "item": item,
         "owner": item.owner,
@@ -99,7 +100,7 @@ def listing(request, item_id):
         "bids": item.Bid_item.all(),
         "comment_form": comment_form,
         "comments": item.Comment.all(),
-        "winner": winner
+        "winner": winner,
         })
 
 def create_listing(request):
@@ -246,3 +247,19 @@ def get_winner(item):
     else:
         winner = ""
     return winner
+
+def get_highest_bid(item):
+    if item.Bid_item.last() == None:
+        return item.price
+    else:
+        return item.Bid_item.last().bid_price
+
+def update_higest_bids():
+    for item in Auction_item.objects.all():
+
+        if item.Bid_item.first() == None:
+            item.highest_bid = item.price
+        else:
+            item.highest_bid = item.Bid_item.last().bid_price
+        item.save()
+    return

@@ -1,18 +1,24 @@
 {% extends "auctions/layout.html" %}
 
 {% block body%}
-<div class="Alcen">
 
+<div class="Alcen">
   <h1>My Listings</h1>
 
-{% for item in listings %}
-
-  <div class="Listing_item">
-      <a href="{% url 'listing' item.id%}"> {{ item }}
-          <p> <img src={{item.Img_url}} alt={{item}} width="200" height="300"></p>
-      </a>
-  </div>
-
-{% endfor %}
+  <div class="containter">
+    <div class="row gx-0">
+      {% for item in listings %}
+        <div class="col-sm-3 gy-4">
+          <div class="inputs">
+            <a href="{% url 'listing' item.id%}"> {{ item }}
+            <p> <img src={{item.Img_url}} alt={{item}} width="200" height="300"></p>
+            </a>
+            <p>Current price: {{item.highest_bid}}</p>
+            <p> {{item.description}} </p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
 </div>
 {% endblock %}

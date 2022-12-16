@@ -345,7 +345,7 @@ def get_winner(item):
     else:
         winner = ""
     return winner
-    
+
 
 def update_higest_bids():
     """Update voor elke listing de hoogste bieding. Als deze er niet is

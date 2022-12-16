@@ -7,6 +7,6 @@ TODO: This application will display allow users to create, bid and comment on di
 
 TODO: We must make a database where we store all the user that enter the website. We must also store all the items and details of the item (name, price, owner description etc.). We must also store all the comments and bids in seperate classes. We must check if bids placed are high enough, if not the user must get an error message.
 
-![alt text for screen readers](/schetsen/Schets0.PNG "Index page")
-![alt text for screen readers](/sketches/Schets1.PNG "Item page")
-![alt text for screen readers](/sketches/Schets3.PNG "Create item page")
+![alt text for screen readers](/schetsen/Schets0.JPG "Index page")
+![alt text for screen readers](/schetssen/Schets1.JPG "Item page")
+![alt text for screen readers](/schetsen/Schets3.JPG "Create item page")
